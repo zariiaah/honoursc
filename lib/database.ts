@@ -1,0 +1,1 @@
+export { DatabaseService as db } from './database-pg';

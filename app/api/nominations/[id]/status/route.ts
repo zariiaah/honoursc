@@ -1,29 +1,53 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
-import { getCurrentUser } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
-  if (!user || user.permission !== 'Admin') {
-    return NextResponse.json({ message: 'Insufficient permissions' }, { status: 403 });
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+    const nomination = await prisma.nomination.findUnique({
+      where: { id },
+    });
+
+    if (!nomination) {
+      return NextResponse.json({ error: 'Nomination not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ nomination });
+  } catch (error) {
+    console.error('Error fetching nomination:', error);
+    return NextResponse.json({ error: 'Failed to fetch nomination' }, { status: 500 });
   }
+}
 
-  const nominationId = params.id;
-  const body = await req.json();
-  const { status } = body;
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+    const body = await request.json();
 
-  if (!['under_review', 'approved', 'rejected'].includes(status)) {
-    return NextResponse.json({ message: 'Invalid status value' }, { status: 400 });
+    // Validate fields if needed, e.g., only allow certain fields to be updated
+
+    const updatedNomination = await prisma.nomination.update({
+      where: { id },
+      data: body,
+    });
+
+    return NextResponse.json({ nomination: updatedNomination });
+  } catch (error) {
+    console.error('Error updating nomination:', error);
+    return NextResponse.json({ error: 'Failed to update nomination' }, { status: 500 });
   }
+}
 
-  const updated = await db.nomination.update({
-    where: { id: nominationId },
-    data: { status },
-  }).catch(() => null);
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+    await prisma.nomination.delete({
+      where: { id },
+    });
 
-  if (!updated) {
-    return NextResponse.json({ message: 'Nomination not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Nomination deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting nomination:', error);
+    return NextResponse.json({ error: 'Failed to delete nomination' }, { status: 500 });
   }
-
-  return NextResponse.json({ id: nominationId, status, message: 'Nomination status updated successfully' }, { status: 200 });
 }
