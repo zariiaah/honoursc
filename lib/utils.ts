@@ -50,13 +50,11 @@ export const formatUsername = (username: string): string => {
 
 // Validation utilities
 export const isValidRobloxUsername = (username: string): boolean => {
-  // ROBLOX usernames: 3-20 characters, alphanumeric and underscore only
   const regex = /^[a-zA-Z0-9_]{3,20}$/;
   return regex.test(username);
 };
 
 export const isValidDiscordUsername = (username: string): boolean => {
-  // Discord usernames: either new format (@username) or old format (username#1234)
   const newFormat = /^@[a-zA-Z0-9._]{1,32}$/;
   const oldFormat = /^.{1,32}#[0-9]{4}$/;
   return newFormat.test(username) || oldFormat.test(username);
@@ -64,14 +62,22 @@ export const isValidDiscordUsername = (username: string): boolean => {
 
 export const validateRequiredFields = (fields: Record<string, any>): string[] => {
   const errors: string[] = [];
-  
   Object.entries(fields).forEach(([key, value]) => {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
       errors.push(`${capitalizeWords(key.replace(/([A-Z])/g, ' $1'))} is required`);
     }
   });
-  
   return errors;
+};
+
+// Password hashing & verification utilities
+export const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+export const comparePasswords = async (password: string, hashedPassword: string): Promise<boolean> => {
+  return bcrypt.compare(password, hashedPassword);
 };
 
 // Permission utilities
@@ -92,7 +98,7 @@ export const getPermissionColor = (permission: string): string => {
   }
 };
 
-// Data formatting utilities
+// Status formatting
 export const formatStatus = (status: string): string => {
   return status === 'under_review' ? 'Under Review' : capitalize(status);
 };
@@ -112,6 +118,7 @@ export const getStatusColor = (status: string): string => {
   }
 };
 
+// Icons and colors for fields
 export const getFieldIcon = (field: string): string => {
   switch (field) {
     case 'Parliamentary and Public Service':
@@ -157,7 +164,7 @@ export const getHonourTitle = (field: string): string => {
   }
 };
 
-// Array sorting utilities
+// Sorting utilities
 export const sortByDate = <T extends { createdAt: Date | string }>(items: T[], ascending = false): T[] => {
   return [...items].sort((a, b) => {
     const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt) : a.createdAt;
@@ -182,29 +189,3 @@ export const sortByField = <T>(items: T[], field: keyof T, ascending = true): T[
     return 0;
   });
 };
-
-// Form utilities
-export const generateFieldId = (baseName: string, index?: number): string => {
-  const suffix = index !== undefined ? `-${index}` : '';
-  return `${baseName.toLowerCase().replace(/\s+/g, '-')}${suffix}`;
-};
-
-export const formatFormError = (error: string): string => {
-  return error.charAt(0).toUpperCase() + error.slice(1);
-};
-
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
-  
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
-
-// Utility type guards
-export const isNotEmpty = <T>(value: T | null | undefined): value is T => {
-  return
