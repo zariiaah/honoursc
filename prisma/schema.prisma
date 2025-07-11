@@ -1,0 +1,92 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")  // Make sure your .env has DATABASE_URL
+}
+
+// User model
+model User {
+  id              String     @id @default(uuid())
+  robloxUsername  String     @unique
+  discordUsername String
+  password        String
+  isAdmin         Boolean    @default(false)
+  permission      Permission @default(USER)
+  createdAt       DateTime   @default(now())
+
+  nominations     Nomination[]   @relation("Nominator")
+  honours         Honour[]
+  reviewComments  ReviewComment[]
+
+  @@map("users")
+}
+
+// Nomination model
+model Nomination {
+  id                   String          @id @default(uuid())
+  nominatorId          String
+  nomineeRobloxUsername String
+  fields               String[]        // Array of fields, e.g. ["Military", "Diplomatic"]
+  description          String
+  status               NominationStatus @default(PENDING)
+  createdAt            DateTime        @default(now())
+
+  nominator            User            @relation("Nominator", fields: [nominatorId], references: [id])
+  reviewComments       ReviewComment[]
+
+  @@map("nominations")
+}
+
+// ReviewComment model
+model ReviewComment {
+  id           String   @id @default(uuid())
+  nominationId String
+  userId       String
+  comment      String
+  createdAt    DateTime @default(now())
+
+  nomination   Nomination @relation(fields: [nominationId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@map("review_comments")
+}
+
+// Honour model
+model Honour {
+  id              String   @id @default(uuid())
+  robloxUsername  String
+  discordUsername String
+  title           String
+  field           HonourField
+  description     String?
+  awardedAt       DateTime @default(now())
+
+  @@map("honours")
+}
+
+// Enums for permissions, nomination statuses, and honour fields
+
+enum Permission {
+  USER
+  HONOURS_COMMITTEE
+  ADMIN
+}
+
+enum NominationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum HonourField {
+  PARLIAMENTARY_AND_PUBLIC_SERVICE
+  MILITARY
+  DIPLOMATIC
+  PRIVATE_SECTOR
+}
