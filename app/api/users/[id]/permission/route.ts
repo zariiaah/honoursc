@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
+import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
@@ -15,7 +15,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ message: 'Invalid permission level' }, { status: 400 });
   }
 
-  const updated = await db.user.update({
+  const updated = await prisma.user.update({
     where: { id },
     data: {
       permission,

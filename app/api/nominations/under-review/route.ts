@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
+import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
@@ -8,9 +8,9 @@ export async function GET() {
     return NextResponse.json({ message: 'Insufficient permissions - Honours Committee access required' }, { status: 403 });
   }
 
-  const nominations = await db.nomination.findMany({
+  const nominations = await prisma.nomination.findMany({
     where: { status: 'under_review' },
-    include: { reviewComments: true },
+    include: { reviews: true }, // assuming "reviews" is the correct related field name
     orderBy: { createdAt: 'desc' },
   });
 

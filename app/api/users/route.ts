@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
+import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ message: 'Insufficient permissions - Admin access required' }, { status: 403 });
   }
 
-  const users = await db.user.findMany({
+  const users = await prisma.user.findMany({
     select: {
       id: true,
       robloxUsername: true,

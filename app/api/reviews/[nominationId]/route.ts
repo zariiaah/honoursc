@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
+import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(_: Request, { params }: { params: { nominationId: string } }) {
@@ -9,7 +9,7 @@ export async function GET(_: Request, { params }: { params: { nominationId: stri
     return NextResponse.json({ message: 'Insufficient permissions - Honours Committee access required' }, { status: 403 });
   }
 
-  const nomination = await db.nomination.findUnique({
+  const nomination = await prisma.nomination.findUnique({
     where: { id: params.nominationId },
   });
 
@@ -17,7 +17,7 @@ export async function GET(_: Request, { params }: { params: { nominationId: stri
     return NextResponse.json({ message: 'Nomination not found' }, { status: 404 });
   }
 
-  const comments = await db.reviewComment.findMany({
+  const comments = await prisma.review.findMany({
     where: { nominationId: params.nominationId },
     orderBy: { createdAt: 'asc' },
   });

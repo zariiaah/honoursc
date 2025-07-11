@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
+import prisma from '@/lib/prisma';
 import { comparePasswords } from '@/lib/utils';
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { robloxUsername, password } = body;
+  const { robloxUsername, password } = await req.json();
 
   if (!robloxUsername || !password) {
     return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
   }
 
-  const user = await db.user.findUnique({ where: { robloxUsername } });
+  const user = await prisma.user.findUnique({
+    where: { robloxUsername },
+  });
+
   if (!user) {
     return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
   }
@@ -21,5 +23,6 @@ export async function POST(req: Request) {
   }
 
   const { password: _, ...safeUser } = user;
+
   return NextResponse.json(safeUser, { status: 200 });
 }

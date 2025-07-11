@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/database-pg';
+import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 const validFields = ['Parliamentary and Public Service', 'Military', 'Diplomatic', 'Private Sector'];
@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const search = req.nextUrl.searchParams.get('search')?.toLowerCase();
   const field = req.nextUrl.searchParams.get('field');
 
-  const honours = await db.honour.findMany({
+  const honours = await prisma.honour.findMany({
     where: {
       ...(search && {
         OR: [
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Invalid honour data' }, { status: 400 });
   }
 
-  const honour = await db.honour.create({
+  const honour = await prisma.honour.create({
     data: {
       robloxUsername,
       discordUsername,
