@@ -11,7 +11,10 @@ interface User {
 export class AuthService {
   private static currentUser: User | null = null;
 
-  static async login(robloxUsername: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+  static async login(
+    robloxUsername: string,
+    password: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -25,7 +28,9 @@ export class AuthService {
           ...user,
           createdAt: new Date(user.createdAt),
         };
-        if (typeof window !== 'undefined') localStorage.setItem('currentUserId', user.id);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('currentUserId', user.id);
+        }
         return { success: true, user: this.currentUser };
       } else {
         const error = await response.json();
@@ -38,7 +43,9 @@ export class AuthService {
 
   static logout(): void {
     this.currentUser = null;
-    if (typeof window !== 'undefined') localStorage.removeItem('currentUserId');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('currentUserId');
+    }
   }
 
   static getCurrentUser(): User | null {
@@ -47,10 +54,11 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       const userId = localStorage.getItem('currentUserId');
       if (userId) {
-        // You could fetch user info here if needed, or return null to force re-login
+        // Fetch user from backend if needed
         return null;
       }
     }
+
     return null;
   }
 
@@ -62,7 +70,11 @@ export class AuthService {
     return this.getCurrentUser()?.isAdmin || false;
   }
 
-  static async register(robloxUsername: string, discordUsername: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+  static async register(
+    robloxUsername: string,
+    discordUsername: string,
+    password: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -76,7 +88,9 @@ export class AuthService {
           ...user,
           createdAt: new Date(user.createdAt),
         };
-        if (typeof window !== 'undefined') localStorage.setItem('currentUserId', user.id);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('currentUserId', user.id);
+        }
         return { success: true, user: this.currentUser };
       } else {
         const error = await response.json();
@@ -90,8 +104,15 @@ export class AuthService {
   static hasPermission(requiredPermission: 'User' | 'Honours Committee' | 'Admin'): boolean {
     const user = this.getCurrentUser();
     if (!user) return false;
-    
-    const levels = { 'User': 1, 'Honours Committee': 2, 'Admin': 3 };
+
+    const levels = { User: 1, 'Honours Committee': 2, Admin: 3 };
     return levels[user.permission] >= levels[requiredPermission];
   }
 }
+
+// ✅ Named exports for convenience in other modules
+export const getCurrentUser = () => AuthService.getCurrentUser();
+export const isAuthenticated = () => AuthService.isAuthenticated();
+export const isAdmin = () => AuthService.isAdmin();
+export const hasPermission = (perm: 'User' | 'Honours Committee' | 'Admin') =>
+  AuthService.hasPermission(perm);
