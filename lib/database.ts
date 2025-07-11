@@ -110,3 +110,6 @@ export const db = {
     }
   },
 };
+
+// Export db as DatabaseService to match imports expecting DatabaseService
+export const DatabaseService = db;
